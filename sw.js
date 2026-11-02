@@ -1,5 +1,5 @@
 // Caches the demo for offline use. Bump happens automatically on every build.
-const CACHE = 'health-access-Kk5O9nQ0l-';
+const CACHE = 'health-access-dayrDxDrTa';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'apple-touch-icon.png', 'app-icon-192.png', 'app-icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener('activate', e => {
