@@ -156,7 +156,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 :root { --sat: env(safe-area-inset-top, 0px); --sab: env(safe-area-inset-bottom, 0px); }
 /* Explicit height: in iOS home-screen mode with a translucent status bar, inset:0 / 100vh stop
    short of the bottom by the top safe area (62pt on iPhone 17). app.js sets --app-h. */
-.device { position: fixed; top: 0; left: 0; right: 0; height: var(--app-h, 100dvh); overflow: hidden; background: var(--gc-page); }
+html, body { min-height: var(--app-h, 100dvh); }
+html.fullh, html.fullh body { height: var(--app-h); overflow: hidden; }
+.device { position: absolute; top: 0; left: 0; right: 0; height: var(--app-h, 100dvh); overflow: hidden; background: var(--gc-page); }
 .framed { display: grid; place-items: center; min-height: 100%; background: radial-gradient(circle at 50% 30%, #1B3C8C, #0B1A3F 70%); }
 .framed .device { position: relative; inset: auto; top: auto; left: auto; right: auto; width: 402px; height: 874px; border-radius: 56px;
                   box-shadow: 0 0 0 11px #1A1C22, 0 0 0 13px #3A3D46, 0 30px 80px rgba(0,0,0,.5); }
@@ -1187,7 +1189,7 @@ device.addEventListener('click', e => {
 function menu() {
   if ($('.pm-menu', device)) return;
   const ids = Object.keys(SCREENS).filter(id => !SCREENS[id].skip);
-  device.insertAdjacentHTML('beforeend', `<div class="pm-menu"><h3>Presenter menu</h3><p>Jump to any screen. Triple-tap the top edge to open this again.</p>
+  device.insertAdjacentHTML('beforeend', `<div class="pm-menu"><h3>Presenter menu</h3><p>Jump to any screen. Triple-tap the top edge to open this again.</p><p style="font-size:11px;opacity:.55">${window.__fit || ''}</p>
     ${ids.map((id, i) => `<button data-jump="${id}" class="${cur && cur.dataset.id === id ? 'cur' : ''}">${i + 1}. ${SCREENS[id].title}</button>`).join('')}
     <button class="x" data-jump="__restart">Restart from login</button><button class="x" data-jump="__close">Close</button></div>`);
   const m = device.lastElementChild;
@@ -1222,9 +1224,14 @@ const phone = matchMedia('(max-width: 500px)').matches;
 if (!phone && !standalone) document.body.classList.add('framed');
 // Size the app to the full screen. iOS home-screen apps report a layout viewport that is
 // shorter than the screen by the status bar, which left an empty strip at the bottom.
+const homeScreen = standalone || matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: minimal-ui)').matches;
 function fitHeight() {
-  const h = standalone ? Math.max(window.innerHeight, screen.height) : window.innerHeight;
+  const portraitScreenH = Math.max(screen.height, screen.width);
+  // On the home screen, always fill the physical screen; in Safari use the visible viewport.
+  const h = homeScreen ? Math.max(innerHeight, portraitScreenH) : innerHeight;
   document.documentElement.style.setProperty('--app-h', h + 'px');
+  document.documentElement.classList.toggle('fullh', homeScreen);
+  window.__fit = `view ${innerHeight}×${innerWidth} · screen ${screen.height}×${screen.width} · app ${h} · home-screen ${homeScreen}`;
 }
 fitHeight();
 addEventListener('resize', fitHeight);
